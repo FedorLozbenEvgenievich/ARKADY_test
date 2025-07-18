@@ -32,7 +32,7 @@ int main() {
 	
 	int Ob_mx[Nmax],Ob_my[Nmax];
 	
-	int mas_max[70][70];
+	int mas_max[70][70];//for optimisation
 	int mas_is[70][70];
 	int* mas[70][70];
 	
@@ -44,7 +44,7 @@ int main() {
 		}
 	}
 	
-	t_distr[0]=0;
+	t_distr[0]=0;//making inverse of Poisson to generate noise
 	float t_distr_inv[100];
 	int k=7;
 	t_distr_inv[0]=0;
@@ -62,7 +62,7 @@ int main() {
 	
 	while (there==true) {
 		system("cls");
-		printf("|WDSA-interact by FEDOR LOZBEN|\n");
+		printf("|WDSA-interact by FEDOR LOZBEN|\n");//draw the menu
 		
 		if (position==1) {printf("|->");} else {printf("|  ");}
 		printf("      START|");
@@ -85,7 +85,7 @@ int main() {
 		printf("|  ");
 		printf("           |");
 		if ((cond>=2)&&(position_==4)) {printf("|->");} else {printf("|  ");}
-		if (cond>=2) {printf(" 1<=[T=%5d]         cahnge->|",T);}
+		if (cond>=2) {printf(" 1<=[T=%5d]          cahnge->|",T);}
 		printf("\n");
 		
 		printf("|  ");
@@ -100,7 +100,7 @@ int main() {
 		if (cond>=2) {printf(" draw each %5d       cahnge->|",T_skip);}
 		printf("\n");
 		
-		ch=getch();
+		ch=getch();//do what user asks
 		if (cond==1) {
 			if (ch=='w') {position--;}
 			if (ch=='s') {position++;}
@@ -177,7 +177,7 @@ int main() {
 		int n_stat=0,stat_D[100];
 		for (int k=0;k<100;k++) {stat_D[k]=0;}
 		ch=0;
-		while ((start==true)||((iterate==true)&&(ch!=' '))) {
+		while ((start==true)||((iterate==true)&&(ch!=' '))) {//starting the simulation
 			start=false;
 			if (iterate==true) {
 				printf("__");
@@ -209,10 +209,10 @@ int main() {
 			Ob_cond[0]=1;
 			Ob_t[0]=t_distr[(int)((rand()%1001)/1000.0 * 100)]*24;
 			
-			ch=0;
+			ch=0;//preparations done, can run now
 			for (int t=0;(t<T)&&(ch!=' ');t++) {
 				if (kbhit()) {ch=getch();}
-				for (int i=0;i<N;i++) {
+				for (int i=0;i<N;i++) {//movement
 					
 					int xx,yy;
 					
@@ -253,13 +253,13 @@ int main() {
 					
 					if ((Ob_dy[i]>0)&&(Ob_y[i]>100)) {Ob_dy[i]=-Ob_dy[i];}
 					if ((Ob_dy[i]<0)&&(Ob_y[i]<0)) {Ob_dy[i]=-Ob_dy[i];}
-				}
+				}//getting infected
 				for (int i=0;i<N;i++) {
 					if (Ob_cond[i]==0) {
 						int xx,yy;
 						xx=Ob_x[i]/1.5;
 						yy=Ob_y[i]/1.5;
-						for (int xxx=xx-1;xxx<=xx+1;xxx++) {
+						for (int xxx=xx-1;xxx<=xx+1;xxx++) {//a bit of optimisation comes
 							for (int yyy=yy-1;yyy<=yy+1;yyy++) {
 								if ((xxx>=0)&&(xxx<=70)&&(yyy>=0)&&(yyy<=70)) {
 									for (int jj=0;jj<mas_is[xxx][yyy];jj++) {
@@ -277,16 +277,16 @@ int main() {
 							Ob_t[i]=t_distr[(int)((rand()%1001)/1000.0 * 100)]*24;
 						}
 					} else {
-						if (Ob_cond[i]!=3) {
-							if ((rand()%1000+1)/1000.0<p_heal) {
+						if (Ob_cond[i]!=3) {//for alive only
+							if ((rand()%1000+1)/1000.0<p_heal) {//setting healthy (need to deal with optimisation grid a bit)
 								Ob_cond[i]=0;
-								if (Ob_x[i]>88) {Ob_x[i]=88;}
+								if (Ob_x[i]>88) {Ob_x[i]=88;}//moving from hospital to the common area
 								
 								int xx,yy;
 								
 								xx=Ob_mx[i];
 								yy=Ob_my[i];
-								int j=0;
+								int j=0;//delete from the past position
 								while ((mas[xx][yy][j]!=i)&&(j<mas_is[xx][yy])) {j++;}
 								if (j<mas_is[xx][yy]) {
 									mas[xx][yy][j]=mas[xx][yy][mas_is[xx][yy]-1];
@@ -298,7 +298,7 @@ int main() {
 								}
 								
 								xx=Ob_x[i]/1.5;
-								yy=Ob_y[i]/1.5;
+								yy=Ob_y[i]/1.5;//add to the current position
 								if (mas_is[xx][yy]>=mas_max[xx][yy]*3/4) {
 									mas_max[xx][yy]*=2;
 									mas[xx][yy]=(int*)realloc(mas[xx][yy],(int)sizeof(int)*mas_max[xx][yy]);
@@ -310,16 +310,43 @@ int main() {
 								Ob_my[i]=yy;
 							}
 							
-							if (Ob_cond[i]==1) {
+							if (Ob_cond[i]==1) {//making infection observable (and deal with optimisation)
 								if (Ob_t[i]==0) {
 									Ob_cond[i]=2;
-									Ob_x[i]=100-(rand()%1000)*10/1000.0;
+									Ob_x[i]=100-(rand()%1000)*10/1000.0;//move to hospital
+									
+									int xx,yy;
+									
+									xx=Ob_mx[i];
+									yy=Ob_my[i];
+									int j=0;//delete from the past position
+									while ((mas[xx][yy][j]!=i)&&(j<mas_is[xx][yy])) {j++;}
+									if (j<mas_is[xx][yy]) {
+										mas[xx][yy][j]=mas[xx][yy][mas_is[xx][yy]-1];
+										mas_is[xx][yy]--;
+										if ((mas_is[xx][yy]<=mas_max[xx][yy]*1/4)&&(mas_max[xx][yy]>4)) {
+											mas_max[xx][yy]/=2;
+											mas[xx][yy]=(int*)realloc(mas[xx][yy],(int)sizeof(int)*mas_max[xx][yy]);
+										}
+									}
+									
+									xx=Ob_x[i]/1.5;
+									yy=Ob_y[i]/1.5;//add to the current position
+									if (mas_is[xx][yy]>=mas_max[xx][yy]*3/4) {
+										mas_max[xx][yy]*=2;
+										mas[xx][yy]=(int*)realloc(mas[xx][yy],(int)sizeof(int)*mas_max[xx][yy]);
+									}
+									mas[xx][yy][mas_is[xx][yy]]=i;
+									mas_is[xx][yy]++;
+									
+									Ob_mx[i]=xx;
+									Ob_my[i]=yy;
 								} else {
 									Ob_t[i]--;
 								}
 							}
 							
-							if ((Ob_cond[i]==2)&&((rand()%1000+1)/1000.0<p_kill)) {
+							if ((Ob_cond[i]==2)&&((rand()%1000+1)/1000.0<p_kill)) {//death
 								Ob_cond[i]=3;
 								int xx,yy;
 								xx=Ob_mx[i];
@@ -341,7 +368,7 @@ int main() {
 				
 				if (((t%T_skip==0)&&(iterate==false))||((t==T-1)&&(iterate==true))) {
 					int a=0,b=0,c=0,d=0;
-					for (int i=0;i<N;i++) {
+					for (int i=0;i<N;i++) {//seeing how many of who
 						if (Ob_cond[i]==0) {a++;}
 						if (Ob_cond[i]==1) {b++;}
 						if (Ob_cond[i]==2) {c++;}
@@ -354,9 +381,9 @@ int main() {
 						b_stat+=b;
 						c_stat+=c;
 						d_stat+=d;
-						stat_D[d*100/N]+=1;
+						stat_D[d*100/N]+=1;//statistics is being collected if asked
 					} else {
-						float aa=a*20.0/N;
+						float aa=a*20.0/N;//drawing faces
 						float bb=b*20.0/N;
 						float cc=c*20.0/N;
 						float dd=d*20.0/N;
@@ -364,7 +391,7 @@ int main() {
 						b=(int)(bb);
 						c=(int)(cc);
 						d=(int)(dd);
-						if (a+b+c+d<20) {
+						if (a+b+c+d<20) {//in case rounding made a mistakes need to correct it a bit
 							while (a+b+c+d<20) {
 								if ((aa-a>=bb-b)&&(aa-a>=cc-c)&&(aa-a>=dd-d)) {a++;} else {
 									if ((bb-b>=aa-a)&&(bb-b>=cc-c)&&(bb-b>=dd-d)) {b++;} else {
@@ -375,10 +402,10 @@ int main() {
 								}
 							}
 						}
-						for (int i=0;i<a;i++) {printf(":) ");}
-						for (int i=0;i<b;i++) {printf(":| ");}
-						for (int i=0;i<c;i++) {printf(":( ");}
-						for (int i=0;i<d;i++) {printf(":X ");}
+						for (int i=0;i<a;i++) {printf(":) ");}//healthy
+						for (int i=0;i<b;i++) {printf(":| ");}//sick,nonobservable
+						for (int i=0;i<c;i++) {printf(":( ");}//sick,observable
+						for (int i=0;i<d;i++) {printf(":X ");}//dead
 						printf("\n");
 					}
 				}
@@ -393,12 +420,12 @@ int main() {
 			iterate=false;
 			if (n_stat>0) {
 				printf("\n\n\n");
-				printf("mean:\n");
+				printf("mean:\n");//show statistics
 				printf(":) - %.5f%\n",a_stat*100.0/n_stat/N);
 				printf(":| - %.5f%\n",b_stat*100.0/n_stat/N);
 				printf(":( - %.5f%\n",c_stat*100.0/n_stat/N);
 				printf(":X - %.5f%\n",d_stat*100.0/n_stat/N);
-				printf("\n death distribution:\n");
+				printf("\n death distribution:\n");//draw a plot
 				for (int i=0;i<20;i++) {
 					for (int j=0;j<20;j++) {
 						if (stat_D[5*j]+stat_D[5*j+1]+stat_D[5*j+2]+stat_D[5*j+3]+stat_D[5*j+4]>5*(20-i)*n_stat/100) {printf("## ");} else {printf(".. ");}
@@ -406,7 +433,7 @@ int main() {
 					printf("\n");
 				}
 				for (int i=0;i<20;i++) {printf("%2d ",i*5);}
-			} else {
+			} else {//no observations -> no output (/0 otherwise)
 				printf("could not collect data \\_(*.*)_/\n");
 			}
 			printf("press [SPACE] to return back");
