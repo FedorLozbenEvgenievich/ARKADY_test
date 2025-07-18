@@ -85,7 +85,7 @@ int main() {
 		printf("|  ");
 		printf("           |");
 		if ((cond>=2)&&(position_==4)) {printf("|->");} else {printf("|  ");}
-		if (cond>=2) {printf(" 1<=[T=%5d]          cahnge->|",T);}
+		if (cond>=2) {printf(" 1<=[T=%7d]        cahnge->|",T);}
 		printf("\n");
 		
 		printf("|  ");
